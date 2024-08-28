@@ -30,12 +30,21 @@ const getSelf = async () => {
 export default function LoginPage() {
   const { isAllowed } = usePermission();
   const { setUser, logout: logoutFromStore } = useAuthStore();
+
   const { refetch } = useQuery({
     queryKey: ["user"],
     queryFn: getSelf,
     enabled: false,
   });
 
+  const { mutate: logoutMutate } = useMutation({
+    mutationKey: ["logout"],
+    mutationFn: logout,
+    onSuccess: () => {
+      logoutFromStore();
+      return;
+    },
+  });
   const { mutate, isPending, isError, error } = useMutation({
     mutationKey: ["login"],
     mutationFn: loginUser,
@@ -43,8 +52,8 @@ export default function LoginPage() {
       console.log("login success");
       const selfDataPrmoise = await refetch();
       if (!isAllowed(selfDataPrmoise.data)) {
-        await logout();
-        logoutFromStore();
+        logoutMutate();
+        return;
       }
       // if (selfDataPrmoise.data.role === "customer") {
       //   // logout();
