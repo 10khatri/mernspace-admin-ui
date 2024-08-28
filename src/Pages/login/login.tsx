@@ -13,7 +13,9 @@ import { LockFilled, UserOutlined, LockOutlined } from "@ant-design/icons";
 import { Credentilas } from "../../types";
 import Logo from "../../components/icons/Logo";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { login, self } from "../../http/api";
+import { login, self, logout } from "../../http/api";
+import { useAuthStore } from "../../store";
+import { usePermission } from "../../hooks/usePermission";
 
 const loginUser = async (credentilas: Credentilas) => {
   const { data } = await login(credentilas);
@@ -26,7 +28,9 @@ const getSelf = async () => {
 };
 
 export default function LoginPage() {
-  const { data: selfData, refetch } = useQuery({
+  const { isAllowed } = usePermission();
+  const { setUser, logout: logoutFromStore } = useAuthStore();
+  const { refetch } = useQuery({
     queryKey: ["user"],
     queryFn: getSelf,
     enabled: false,
@@ -37,8 +41,18 @@ export default function LoginPage() {
     mutationFn: loginUser,
     onSuccess: async () => {
       console.log("login success");
-      refetch();
-      console.log(selfData);
+      const selfDataPrmoise = await refetch();
+      if (!isAllowed(selfDataPrmoise.data)) {
+        await logout();
+        logoutFromStore();
+      }
+      // if (selfDataPrmoise.data.role === "customer") {
+      //   // logout();
+      //   await logout();
+      //   logoutFromStore();
+      // }
+      setUser(selfDataPrmoise.data);
+      console.log(selfDataPrmoise.data);
     },
   });
 
