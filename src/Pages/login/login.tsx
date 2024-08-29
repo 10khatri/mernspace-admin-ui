@@ -32,7 +32,7 @@ export default function LoginPage() {
   const { setUser, logout: logoutFromStore } = useAuthStore();
 
   const { refetch } = useQuery({
-    queryKey: ["user"],
+    queryKey: ["self"],
     queryFn: getSelf,
     enabled: false,
   });
