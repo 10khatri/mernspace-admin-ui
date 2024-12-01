@@ -8,3 +8,4 @@ export const api = axios.create({
     Accept: "application/json",
   },
 });
+const refreshToken = () => api.post("/auth/refresh");
